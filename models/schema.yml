@@ -1,0 +1,15 @@
+version: 2
+models:
+  - name: ras_ppg_2024
+    description: relative athletic score project to join ras scores and 2024 fantasy production
+    columns: 
+      - name: player
+        tests:
+          - not_null
+      - name: pos
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['QB', 'RB', 'WR', 'TE', 'DT']
+  - name: ras_percentiles_2024
+    description: relative athletic score project to join ras scores and 2024 fantasy production
