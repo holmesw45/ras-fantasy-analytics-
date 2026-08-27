@@ -15,6 +15,9 @@ CREATE TABLE RAS_scores (
 );
 SELECT COUNT(*) FROM RAS_SCORES;
 
+
+
+
 SELECT *
 FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
     TABLE_NAME => 'RAS_SCORES',
@@ -28,4 +31,191 @@ where RAS is not null
 
 
 
+USE WAREHOUSE COMPUTE_WH;
+USE DATABASE RAS_PROJECT;
+USE SCHEMA PUBLIC;
 
+CREATE TABLE RAS_scores2024 ( 
+    Name VARCHAR, 
+    Position VARCHAR, 
+    RAS DECIMAL(4,2) 
+);
+
+select count(*) from ras_scores2024;
+
+SELECT COUNT(*) FROM RAS_PROJECT.PUBLIC.ras_ppg_2024;
+
+
+
+USE WAREHOUSE COMPUTE_WH;
+USE DATABASE RAS_PROJECT;
+USE SCHEMA PUBLIC;
+
+CREATE TABLE ppg_2024 ( 
+    player VARCHAR, 
+    Fantpos VARCHAR, 
+    G int,
+    PPR decimal(6,3)
+);
+
+SELECT COUNT(*) FROM ppg_2024;
+
+
+SELECT name , player , POS , RAS , G , PPR , PPR / G as ppg
+FROM RAS_scores2024 
+JOIN ppg_2024 
+ON RAS_scores2024.name = REPLACE( REPLACE(ppg_2024.player,  '*', ''), '+', '')
+;
+
+SELECT * FROM RAS_PPG_2024;
+
+
+ALTER USER WILLH45 SET RSA_PUBLIC_KEY='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhM0E0jlQhGbiPTsRrJsPqKzdEJb7TqsSovnWZXtl7bcAhn7bXcgLsUWRtr+8YjcyO7kKqBRTVWr5Fr1X11Z2f7rQuI01RUYXHjk7t9B0Gz+rt/4v5IWQWPAyhsvYff8p0w9QNn4dC1sMN48xNP9BRUYYr/jbEzvOQ+bBmadLcTI9beE0sx/9J3kqQNkhcY9UgPljM+Z2IhQONGSVf0ukuOBSvNl0pieGTZ+5crX5dHetvgO9Pp/MVWMFIzKotab/FBf3V4Ih+rCBkA9OrIl6+XRA/fLU3BTZl71zM5ozL7s72VUXcTQDDXdxm6NfooCA2bT1DT34PZ5a2gfmWuUArwIDAQAB';
+
+DESCRIBE TABLE RAS_scores2024;
+
+SELECT * FROM RAS_PROJECT.PUBLIC.ras_percentiles_2024
+ORDER BY ras_percentile DESC
+LIMIT 10;
+
+SHOW VIEWS LIKE '%percentiles%' IN DATABASE RAS_PROJECT;
+
+SHOW VIEWS LIKE '%ras_ppg%' IN ACCOUNT;
+
+
+SELECT COUNT(*) FROM RAS_PROJECT.PUBLIC.ras_ppg_2024;
+
+SELECT POS, COUNT(*)
+FROM RAS_PROJECT.PUBLIC.ras_ppg_2024
+GROUP BY POS;
+
+
+
+
+USE WAREHOUSE COMPUTE_WH;
+USE DATABASE RAS_PROJECT;
+USE SCHEMA PUBLIC;
+
+CREATE TABLE combine_results(
+    year INT,
+    player VARCHAR,
+    college VARCHAR,
+    POS VARCHAR,
+    height DECIMAL(4,2),
+    weight INT,
+    arm_length DECIMAL(4,2),
+    hand_size DECIMAL(4,2),
+    forty_yard DECIMAL(4,2),
+    vert_leap DECIMAL(4,2),
+    broad_jump INT,
+    three_cone DECIMAL(4,2),
+    shuttle DECIMAL(4,2),
+    bench_press INT
+);
+
+
+SELECT COUNT(*) FROM RAS_PROJECT.PUBLIC.combine_results;
+DESCRIBE TABLE RAS_PROJECT.PUBLIC.combine_results;
+
+DESCRIBE TABLE RAS_PROJECT.PUBLIC.combine_results;
+
+SELECT * FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles
+WHERE POS = 'WR'
+ORDER BY forty_pct DESC
+LIMIT 20;
+
+
+SELECT player, "3Cone"
+FROM RAS_PROJECT.PUBLIC.combine_results
+WHERE POS = 'WR' AND "3Cone" IS NULL
+LIMIT 10;
+
+SELECT player, "3Cone"
+FROM RAS_PROJECT.PUBLIC.combine_results
+WHERE POS = 'WR'
+  AND player IN ('Xavier Worthy', 'Trindon Holliday', 'Jacoby Ford');
+
+SELECT * FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles
+WHERE POS = 'WR'
+ORDER BY forty_pct DESC
+LIMIT 20;
+
+SELECT * FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles
+WHERE POS = 'WR'
+ORDER BY forty_pct DESC NULLS LAST
+LIMIT 20;
+
+DESCRIBE TABLE RAS_PROJECT.PUBLIC.combine_results;
+
+SELECT player, "Vert Leap (in)", vert_leap_pct
+FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles p
+JOIN RAS_PROJECT.PUBLIC.combine_results c USING (player)
+WHERE p.POS = 'WR'
+ORDER BY vert_leap_pct DESC NULLS LAST
+LIMIT 10;
+
+SELECT player, "Vert Leap (in)"
+FROM RAS_PROJECT.PUBLIC.combine_results
+WHERE POS = 'WR'
+ORDER BY "Vert Leap (in)" DESC NULLS LAST
+LIMIT 5;
+
+SELECT player, POS, vert_leap_pct
+FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles
+WHERE player = 'Josh Imatorbhebhe';
+
+SELECT
+  COUNT(*) AS all_wr,
+  COUNT("Vert Leap (in)") AS has_vert
+FROM RAS_PROJECT.PUBLIC.combine_results
+WHERE POS = 'WR';
+
+SELECT player, vert_leap_pct
+FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles
+WHERE player = 'Josh Imatorbhebhe';
+
+SELECT player, "40 Yard", forty_pct
+FROM RAS_PROJECT.PUBLIC.stg_combine_percentiles p
+JOIN RAS_PROJECT.PUBLIC.combine_results c USING (player, POS, year)
+WHERE p.POS = 'WR'
+ORDER BY "40 Yard" ASC NULLS LAST
+LIMIT 5;
+
+SELECT
+  COUNT(*) AS total,
+  COUNT_IF("Height (in)" IS NOT NULL
+       AND "Weight (lbs)" IS NOT NULL
+       AND "40 Yard" IS NOT NULL
+       AND shuttle IS NOT NULL) AS meets_required
+FROM RAS_PROJECT.PUBLIC.combine_results;
+
+SELECT MIN(ras_score), MAX(ras_score), AVG(ras_score), COUNT(ras_score)
+FROM RAS_PROJECT.PUBLIC.ras_scores;
+
+SELECT MIN(ras_score), MAX(ras_score), AVG(ras_score), COUNT(ras_score)
+FROM RAS_PROJECT.PUBLIC.ras_scores;
+
+SELECT player, year, POS, n_measures, ras_score
+FROM RAS_PROJECT.PUBLIC.ras_scores
+ORDER BY ras_score DESC NULLS LAST
+LIMIT 15;
+
+SELECT POS, COUNT(*)
+FROM RAS_PROJECT.PUBLIC.ras_ppg_2024
+GROUP BY POS
+ORDER BY 2 DESC;
+
+SELECT COUNT(*) FROM RAS_PROJECT.PUBLIC.ras_ppg_2024;
+
+SELECT
+    POS,
+    CASE WHEN ras_score >= 8 THEN 'elite'
+         WHEN ras_score >= 6 THEN 'good'
+         WHEN ras_score >= 4 THEN 'average'
+         ELSE 'poor' END AS ras_tier,
+    COUNT(*) AS players,
+    ROUND(AVG(ppg), 2) AS avg_ppg
+FROM RAS_PROJECT.PUBLIC.ras_ppg_2024
+WHERE ras_score IS NOT NULL AND G >= 4
+GROUP BY 1, 2
+ORDER BY POS, ras_tier;
