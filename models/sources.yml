@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw
+    database: RAS_PROJECT
+    schema: PUBLIC
+    tables:
+
+      - name: RAS_scores2024
+      - name: ppg_2024
+      - name: combine_results
