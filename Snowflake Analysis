@@ -1,1 +1,31 @@
+USE WAREHOUSE COMPUTE_WH;
+USE DATABASE RAS_PROJECT;  
+USE SCHEMA PUBLIC;
+
+CREATE TABLE RAS_scores ( 
+    Name VARCHAR, 
+    Position VARCHAR, 
+    Year INT, 
+    College VARCHAR, 
+    RAS DECIMAL(4,2), 
+    Alltime_RAS DECIMAL(4,2), 
+    Round VARCHAR, 
+    Pick INT, 
+    Draft_team VARCHAR 
+);
+SELECT COUNT(*) FROM RAS_SCORES;
+
+SELECT *
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+    TABLE_NAME => 'RAS_SCORES',
+    START_TIME => DATEADD(hours, -2, CURRENT_TIMESTAMP())
+));
+
+SELECT NAME, POSITION, RAS, PERCENT_RANK() OVER (PARTITION BY Position ORDER BY RAS DESC) AS ras_percentile
+FROM RAS_SCORES
+where RAS is not null
+    and position not in ('K','P','LS','FB');
+
+
+
 
